@@ -48,7 +48,7 @@ func xlsxRowToContact(r *http.Request, c context.Context, singleRow *xlsx.Row, h
 	return contact, nil
 }
 
-func xlsxToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, []string, error) {
+func XlsxToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, []string, error) {
 	c := appengine.NewContext(r)
 
 	xlFile, err := xlsx.OpenBinary(file)
@@ -99,7 +99,7 @@ func xlsxToContactList(r *http.Request, file []byte, headers []string, mediaList
 	return contacts, customFields, nil
 }
 
-func xlsxFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
+func XlsxFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 	c := appengine.NewContext(r)
 	xlFile, err := xlsx.OpenBinary(file)
 	if err != nil {

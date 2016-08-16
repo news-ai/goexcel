@@ -52,7 +52,7 @@ func xlsRowToContact(r *http.Request, c context.Context, numberOfColumns int, wo
 	return contact, nil
 }
 
-func xlsToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, []string, error) {
+func XlsToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, []string, error) {
 	c := appengine.NewContext(r)
 
 	readerFile := bytes.NewReader(file)
@@ -96,7 +96,7 @@ func xlsToContactList(r *http.Request, file []byte, headers []string, mediaListi
 	return contacts, customFields, nil
 }
 
-func xlsFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
+func XlsFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 	readerFile := bytes.NewReader(file)
 	workbook, err := xls.OpenReader(readerFile, "utf-8")
 	if err != nil {
