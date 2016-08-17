@@ -17,7 +17,7 @@ import (
 )
 
 func xlsGetCustomFields(r *http.Request, c context.Context, numberOfColumns int, headers []string) map[string]bool {
-	var customFields map[string]bool
+	customFields := make(map[string]bool, len(headers))
 
 	for x := 0; x < numberOfColumns; x++ {
 		columnName := headers[x]
