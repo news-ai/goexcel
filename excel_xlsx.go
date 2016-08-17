@@ -16,13 +16,13 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
-func xlsxGetCustomFields(r *http.Request, c context.Context, numberOfColumns int, headers []string) []string {
-	var customFields []string
+func xlsxGetCustomFields(r *http.Request, c context.Context, numberOfColumns int, headers []string) map[string]bool {
+	var customFields map[string]bool
 
 	for i := 0; i < numberOfColumns; i++ {
 		columnName := headers[i]
 		if !customOrNative(columnName) {
-			customFields = append(customFields, columnName)
+			customFields[columnName] = true
 		}
 	}
 	return customFields
@@ -48,19 +48,19 @@ func xlsxRowToContact(r *http.Request, c context.Context, singleRow *xlsx.Row, h
 	return contact, nil
 }
 
-func XlsxToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, []string, error) {
+func XlsxToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, map[string]bool, error) {
 	c := appengine.NewContext(r)
 
 	xlFile, err := xlsx.OpenBinary(file)
 	if err != nil {
 		log.Errorf(c, "%v", err)
-		return []models.Contact{}, []string{}, err
+		return []models.Contact{}, map[string]bool{}, err
 	}
 
 	if len(xlFile.Sheets) == 0 {
 		err = errors.New("Sheet is empty")
 		log.Errorf(c, "%v", err)
-		return []models.Contact{}, []string{}, err
+		return []models.Contact{}, map[string]bool{}, err
 	}
 
 	sheet := xlFile.Sheets[0]
@@ -68,13 +68,13 @@ func XlsxToContactList(r *http.Request, file []byte, headers []string, mediaList
 	if len(sheet.Rows) == 0 {
 		err = errors.New("No rows in sheet")
 		log.Errorf(c, "%v", err)
-		return []models.Contact{}, []string{}, err
+		return []models.Contact{}, map[string]bool{}, err
 	}
 
 	// Number of columns in sheet to compare
 	numberOfColumns := len(sheet.Rows[0].Cells)
 	if numberOfColumns != len(headers) {
-		return []models.Contact{}, []string{}, errors.New("Number of headers does not match the ones for the sheet")
+		return []models.Contact{}, map[string]bool{}, errors.New("Number of headers does not match the ones for the sheet")
 	}
 
 	// Loop through all the rows
@@ -84,7 +84,7 @@ func XlsxToContactList(r *http.Request, file []byte, headers []string, mediaList
 	for _, row := range sheet.Rows {
 		contact, err := xlsxRowToContact(r, c, row, headers)
 		if err != nil {
-			return []models.Contact{}, []string{}, err
+			return []models.Contact{}, map[string]bool{}, err
 		}
 
 		// To get rid of empty contacts. We don't want to create empty contacts.

@@ -16,13 +16,13 @@ import (
 	"github.com/extrame/xls"
 )
 
-func xlsGetCustomFields(r *http.Request, c context.Context, numberOfColumns int, headers []string) []string {
-	var customFields []string
+func xlsGetCustomFields(r *http.Request, c context.Context, numberOfColumns int, headers []string) map[string]bool {
+	var customFields map[string]bool
 
 	for x := 0; x < numberOfColumns; x++ {
 		columnName := headers[x]
 		if !customOrNative(columnName) {
-			customFields = append(customFields, columnName)
+			customFields[columnName] = true
 		}
 	}
 	return customFields
@@ -52,24 +52,24 @@ func xlsRowToContact(r *http.Request, c context.Context, numberOfColumns int, wo
 	return contact, nil
 }
 
-func XlsToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, []string, error) {
+func XlsToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, map[string]bool, error) {
 	c := appengine.NewContext(r)
 
 	readerFile := bytes.NewReader(file)
 	workbook, err := xls.OpenReader(readerFile, "utf-8")
 	if err != nil {
-		return []models.Contact{}, []string{}, err
+		return []models.Contact{}, map[string]bool{}, err
 	}
 
 	sheet := workbook.GetSheet(0)
 	if sheet == nil {
-		return []models.Contact{}, []string{}, errors.New("Sheet is empty")
+		return []models.Contact{}, map[string]bool{}, errors.New("Sheet is empty")
 	}
 
 	// Number of columns in sheet to compare
 	numberOfColumns := len(sheet.Rows[0].Cols)
 	if numberOfColumns != len(headers) {
-		return []models.Contact{}, []string{}, errors.New("Number of headers does not match the ones for the sheet")
+		return []models.Contact{}, map[string]bool{}, errors.New("Number of headers does not match the ones for the sheet")
 	}
 
 	// Loop through all the rows
@@ -81,7 +81,7 @@ func XlsToContactList(r *http.Request, file []byte, headers []string, mediaListi
 		row := sheet.Rows[uint16(i)]
 		contact, err := xlsRowToContact(r, c, numberOfColumns, workbook, row, headers)
 		if err != nil {
-			return []models.Contact{}, []string{}, err
+			return []models.Contact{}, map[string]bool{}, err
 		}
 
 		// To get rid of empty contacts. We don't want to create empty contacts.
