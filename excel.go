@@ -36,6 +36,18 @@ func customOrNative(columnName string) bool {
 	return false
 }
 
+func getCustomFields(r *http.Request, c context.Context, numberOfColumns int, headers []string) map[string]bool {
+	customFields := make(map[string]bool, len(headers))
+
+	for x := 0; x < numberOfColumns; x++ {
+		columnName := headers[x]
+		if !customOrNative(columnName) {
+			customFields[columnName] = true
+		}
+	}
+	return customFields
+}
+
 func rowToContact(r *http.Request, c context.Context, columnName string, cellName string, contact *models.Contact, employers *[]int64, pastEmployers *[]int64, customFields *[]models.CustomContactField) {
 	if columnName != "ignore_column" {
 		if customOrNative(columnName) {

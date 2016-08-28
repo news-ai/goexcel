@@ -16,18 +16,6 @@ import (
 	"github.com/extrame/xls"
 )
 
-func xlsGetCustomFields(r *http.Request, c context.Context, numberOfColumns int, headers []string) map[string]bool {
-	customFields := make(map[string]bool, len(headers))
-
-	for x := 0; x < numberOfColumns; x++ {
-		columnName := headers[x]
-		if !customOrNative(columnName) {
-			customFields[columnName] = true
-		}
-	}
-	return customFields
-}
-
 func xlsRowToContact(r *http.Request, c context.Context, numberOfColumns int, workbook *xls.WorkBook, singleRow *xls.Row, headers []string) (models.Contact, error) {
 	var (
 		contact       models.Contact
@@ -52,7 +40,7 @@ func xlsRowToContact(r *http.Request, c context.Context, numberOfColumns int, wo
 	return contact, nil
 }
 
-func XlsToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, map[string]bool, error) {
+func XlsToContactList(r *http.Request, file []byte, headers []string) ([]models.Contact, map[string]bool, error) {
 	c := appengine.NewContext(r)
 
 	readerFile := bytes.NewReader(file)
@@ -91,7 +79,7 @@ func XlsToContactList(r *http.Request, file []byte, headers []string, mediaListi
 	}
 
 	// Get custom fields
-	customFields := xlsGetCustomFields(r, c, numberOfColumns, headers)
+	customFields := getCustomFields(r, c, numberOfColumns, headers)
 
 	return contacts, customFields, nil
 }

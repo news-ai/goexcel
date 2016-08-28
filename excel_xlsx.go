@@ -48,22 +48,22 @@ func xlsxRowToContact(r *http.Request, c context.Context, singleRow *xlsx.Row, h
 	return contact, nil
 }
 
-func XlsxToContactList(r *http.Request, file []byte, headers []string, mediaListid int64) ([]models.Contact, map[string]bool, error) {
+func XlsxToContactList(r *http.Request, file []byte, headers []string) ([]models.Contact, map[string]bool, error) {
 	c := appengine.NewContext(r)
 
-	xlFile, err := xlsx.OpenBinary(file)
+	xlsxFile, err := xlsx.OpenBinary(file)
 	if err != nil {
 		log.Errorf(c, "%v", err)
 		return []models.Contact{}, map[string]bool{}, err
 	}
 
-	if len(xlFile.Sheets) == 0 {
+	if len(xlsxFile.Sheets) == 0 {
 		err = errors.New("Sheet is empty")
 		log.Errorf(c, "%v", err)
 		return []models.Contact{}, map[string]bool{}, err
 	}
 
-	sheet := xlFile.Sheets[0]
+	sheet := xlsxFile.Sheets[0]
 
 	if len(sheet.Rows) == 0 {
 		err = errors.New("No rows in sheet")
@@ -94,26 +94,26 @@ func XlsxToContactList(r *http.Request, file []byte, headers []string, mediaList
 	}
 
 	// Get custom fields
-	customFields := xlsxGetCustomFields(r, c, len(sheet.Rows[0].Cells), headers)
+	customFields := getCustomFields(r, c, len(sheet.Rows[0].Cells), headers)
 
 	return contacts, customFields, nil
 }
 
 func XlsxFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 	c := appengine.NewContext(r)
-	xlFile, err := xlsx.OpenBinary(file)
+	xlsxFile, err := xlsx.OpenBinary(file)
 	if err != nil {
 		log.Errorf(c, "%v", err)
 		return []Column{}, err
 	}
 
-	if len(xlFile.Sheets) == 0 {
+	if len(xlsxFile.Sheets) == 0 {
 		err = errors.New("Sheet is empty")
 		log.Errorf(c, "%v", err)
 		return []Column{}, err
 	}
 
-	sheet := xlFile.Sheets[0]
+	sheet := xlsxFile.Sheets[0]
 
 	if len(sheet.Rows) == 0 {
 		err = errors.New("No rows in sheet")
