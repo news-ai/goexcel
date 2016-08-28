@@ -48,7 +48,7 @@ func csvRowToContact(r *http.Request, c context.Context, singleRow []string, hea
 	return contact, nil
 }
 
-func CsvToContactList(r *http.Request, file []byte, headers []string) ([]models.Contact, map[string]bool, error) {
+func csvToContactList(r *http.Request, file []byte, headers []string) ([]models.Contact, map[string]bool, error) {
 	c := appengine.NewContext(r)
 
 	readerFile := bytes.NewReader(file)
@@ -91,7 +91,7 @@ func CsvToContactList(r *http.Request, file []byte, headers []string) ([]models.
 	return contacts, customFields, nil
 }
 
-func CsvFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
+func csvFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 	c := appengine.NewContext(r)
 
 	readerFile := bytes.NewReader(file)

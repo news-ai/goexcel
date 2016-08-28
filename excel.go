@@ -1,6 +1,7 @@
 package goexcel
 
 import (
+	"errors"
 	"net/http"
 
 	"google.golang.org/appengine/log"
@@ -90,4 +91,42 @@ func rowToContact(r *http.Request, c context.Context, columnName string, cellNam
 			*customFields = append(*customFields, customField)
 		}
 	}
+}
+
+func FileToExcelHeader(c context.Context, r *http.Request, file []byte, contentType string) ([]Column, error) {
+	if contentType == "application/vnd.ms-excel" {
+		log.Infof(c, "%v", contentType)
+		return xlsFileToExcelHeader(r, file)
+	} else if contentType == "text/csv" {
+		log.Infof(c, "%v", contentType)
+		return csvFileToExcelHeader(r, file)
+	}
+	return xlsxFileToExcelHeader(r, file)
+}
+
+func HeadersToListModel(c context.Context, r *http.Request, file []byte, headers []string, contentType string) ([]models.Contact, map[string]bool, error) {
+	contacts := []models.Contact{}
+	var customFields map[string]bool
+	err := errors.New("")
+
+	if contentType == "application/vnd.ms-excel" {
+		log.Infof(c, "%v", contentType)
+		contacts, customFields, err = xlsToContactList(r, file, headers)
+		if err != nil {
+			return []models.Contact{}, customFields, err
+		}
+	} else if contentType == "text/csv" {
+		log.Infof(c, "%v", contentType)
+		contacts, customFields, err = csvToContactList(r, file, headers)
+		if err != nil {
+			return []models.Contact{}, customFields, err
+		}
+	} else {
+		contacts, customFields, err = xlsxToContactList(r, file, headers)
+		if err != nil {
+			return []models.Contact{}, customFields, err
+		}
+	}
+
+	return contacts, customFields, err
 }
