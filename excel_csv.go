@@ -29,7 +29,23 @@ func csvGetCustomFields(r *http.Request, c context.Context, numberOfColumns int,
 }
 
 func csvRowToContact(r *http.Request, c context.Context, singleRow []string, headers []string) (models.Contact, error) {
+	var (
+		contact       models.Contact
+		employers     []int64
+		pastEmployers []int64
+		customFields  []models.CustomContactField
+	)
 
+	for x := 0; x < len(singleRow); x++ {
+		columnName := headers[x]
+		cellName := singleRow[x]
+		rowToContact(r, c, columnName, cellName, &contact, &employers, &pastEmployers, &customFields)
+	}
+
+	contact.CustomFields = customFields
+	contact.Employers = employers
+	contact.PastEmployers = pastEmployers
+	return contact, nil
 }
 
 func CsvToContactList(r *http.Request, file []byte, headers []string) ([]models.Contact, map[string]bool, error) {
@@ -38,11 +54,17 @@ func CsvToContactList(r *http.Request, file []byte, headers []string) ([]models.
 	readerFile := bytes.NewReader(file)
 	incomingRecords := csv.NewReader(readerFile)
 	records, err := incomingRecords.ReadAll()
+	if err != nil {
+		log.Infof(c, "%v", err)
+		return []models.Contact{}, map[string]bool{}, err
+	}
 
 	// Number of columns in sheet to compare
 	numberOfColumns := len(records[0])
 	if numberOfColumns != len(headers) {
-		return []models.Contact{}, map[string]bool{}, errors.New("Number of headers does not match the ones for the sheet")
+		err := errors.New("Number of headers does not match the ones for the sheet")
+		log.Infof(c, "%v", err)
+		return []models.Contact{}, map[string]bool{}, err
 	}
 
 	// Loop through all the rows
@@ -53,6 +75,7 @@ func CsvToContactList(r *http.Request, file []byte, headers []string) ([]models.
 	for i := 0; i < len(records); i++ {
 		contact, err := csvRowToContact(r, c, records[0], headers)
 		if err != nil {
+			log.Infof(c, "%v", err)
 			return []models.Contact{}, map[string]bool{}, err
 		}
 
@@ -76,9 +99,8 @@ func CsvFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 	records, err := incomingRecords.ReadAll()
 	if err != nil {
 		log.Errorf(c, "%v", err)
+		return []Column{}, err
 	}
-
-	log.Infof(c, "%v", records)
 
 	numberOfRows := 15
 	if len(records) < numberOfRows+1 {
