@@ -73,7 +73,7 @@ func CsvToContactList(r *http.Request, file []byte, headers []string) ([]models.
 	contacts := []models.Contact{}
 
 	for i := 0; i < len(records); i++ {
-		contact, err := csvRowToContact(r, c, records[0], headers)
+		contact, err := csvRowToContact(r, c, records[i], headers)
 		if err != nil {
 			log.Infof(c, "%v", err)
 			return []models.Contact{}, map[string]bool{}, err
