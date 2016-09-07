@@ -96,7 +96,6 @@ func csvFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 
 	readerFile := bytes.NewReader(file)
 	incomingRecords := csv.NewReader(readerFile)
-	// incomingRecords.LazyQuotes = true
 	records, err := incomingRecords.ReadAll()
 	if err != nil {
 		log.Errorf(c, "%v", err)
