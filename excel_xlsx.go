@@ -73,6 +73,19 @@ func xlsxToContactList(r *http.Request, file []byte, headers []string) ([]models
 
 	// Number of columns in sheet to compare
 	numberOfColumns := len(sheet.Rows[0].Cells)
+	startingPosition := 0
+
+	// If number of columns is zero (edge case)
+	if numberOfColumns == 0 {
+		for i := 0; i < len(sheet.Rows); i++ {
+			if len(sheet.Rows[i].Cells) > 0 {
+				startingPosition = i
+				numberOfColumns = len(sheet.Rows[i].Cells)
+				break
+			}
+		}
+	}
+
 	if numberOfColumns != len(headers) {
 		return []models.Contact{}, map[string]bool{}, errors.New("Number of headers does not match the ones for the sheet")
 	}
@@ -81,7 +94,7 @@ func xlsxToContactList(r *http.Request, file []byte, headers []string) ([]models
 	// Extract information
 	emptyContact := models.Contact{}
 	contacts := []models.Contact{}
-	for _, row := range sheet.Rows {
+	for _, row := range sheet.Rows[startingPosition:] {
 		contact, err := xlsxRowToContact(r, c, row, headers)
 		if err != nil {
 			return []models.Contact{}, map[string]bool{}, err
@@ -94,7 +107,7 @@ func xlsxToContactList(r *http.Request, file []byte, headers []string) ([]models
 	}
 
 	// Get custom fields
-	customFields := getCustomFields(r, c, len(sheet.Rows[0].Cells), headers)
+	customFields := getCustomFields(r, c, len(sheet.Rows[startingPosition].Cells), headers)
 
 	return contacts, customFields, nil
 }
