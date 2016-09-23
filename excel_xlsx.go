@@ -128,9 +128,26 @@ func xlsxFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 	}
 
 	numberOfColumns := len(sheet.Rows[0].Cells)
+	startingPosition := 0
+	// If number of columns is zero (edge case)
+	if numberOfColumns == 0 {
+		for i := 0; i < len(sheet.Rows); i++ {
+			if len(sheet.Rows[i].Cells) > 0 {
+				startingPosition = i
+				numberOfColumns = len(sheet.Rows[i].Cells)
+				break
+			}
+		}
+	}
+
 	columns := make([]Column, numberOfColumns)
 
-	for _, row := range sheet.Rows[0:numberOfRows] {
+	for _, row := range sheet.Rows[startingPosition:numberOfRows] {
+		// Skip row if it does not have the same amount of columns.
+		// Might have a bug?
+		if len(row.Cells) != numberOfColumns {
+			continue
+		}
 		for currentColumn, cell := range row.Cells {
 			cellName, _ := cell.String()
 			columns[currentColumn].Rows = append(columns[currentColumn].Rows, strings.Trim(cellName, " "))
