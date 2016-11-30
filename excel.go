@@ -30,6 +30,10 @@ type Column struct {
 	Rows []string `json:"rows"`
 }
 
+type Sheet struct {
+	Names []string `json:"names"`
+}
+
 func customOrNative(columnName string) bool {
 	if _, ok := nonCustomHeaders[columnName]; ok {
 		return true
@@ -91,6 +95,17 @@ func rowToContact(r *http.Request, c context.Context, columnName string, cellNam
 			*customFields = append(*customFields, customField)
 		}
 	}
+}
+
+func FileToExcelSheets(c context.Context, r *http.Request, file []byte, contentType string) (Sheet, error) {
+	if contentType == "application/vnd.ms-excel" {
+		log.Infof(c, "%v", contentType)
+		return Sheet{}, nil
+	} else if contentType == "text/csv" {
+		log.Infof(c, "%v", contentType)
+		return Sheet{}, nil
+	}
+	return xlsxFileToExcelSheets(r, file)
 }
 
 func FileToExcelHeader(c context.Context, r *http.Request, file []byte, contentType string) ([]Column, error) {

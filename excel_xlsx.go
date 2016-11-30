@@ -112,6 +112,29 @@ func xlsxToContactList(r *http.Request, file []byte, headers []string) ([]models
 	return contacts, customFields, nil
 }
 
+func xlsxFileToExcelSheets(r *http.Request, file []byte) (Sheet, error) {
+	c := appengine.NewContext(r)
+	xlsxFile, err := xlsx.OpenBinary(file)
+	if err != nil {
+		log.Errorf(c, "%v", err)
+		return Sheet{}, err
+	}
+
+	if len(xlsxFile.Sheets) == 0 {
+		err = errors.New("Sheet is empty")
+		log.Errorf(c, "%v", err)
+		return Sheet{}, err
+	}
+
+	sheetNames := Sheet{}
+
+	for i := 0; i < len(xlsxFile.Sheets); i++ {
+		sheetNames.Names = append(sheetNames.Names, xlsxFile.Sheets[i].Name)
+	}
+
+	return sheetNames, nil
+}
+
 func xlsxFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 	c := appengine.NewContext(r)
 	xlsxFile, err := xlsx.OpenBinary(file)
@@ -153,8 +176,9 @@ func xlsxFileToExcelHeader(r *http.Request, file []byte) ([]Column, error) {
 		}
 	}
 
-	columns := make([]Column, numberOfColumns)
+	// Sometimes there are columns that are totally empty. Check if that is the case
 
+	columns := make([]Column, numberOfColumns)
 	for _, row := range sheet.Rows[startingPosition:numberOfRows] {
 		// Skip row if it does not have the same amount of columns.
 		// Might have a bug?
