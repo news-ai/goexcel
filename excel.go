@@ -66,13 +66,13 @@ func rowToContact(r *http.Request, c context.Context, columnName string, cellNam
 			case "notes":
 				contact.Notes = cellName
 			case "employers":
-				singleEmployer, err := controllers.FindOrCreatePublication(c, r, cellName)
+				singleEmployer, err := controllers.FindOrCreatePublication(c, r, cellName, "")
 				if err != nil {
 					log.Errorf(c, "employers error: %v", cellName, err)
 				}
 				*employers = append(*employers, singleEmployer.Id)
 			case "pastemployers":
-				singleEmployer, err := controllers.FindOrCreatePublication(c, r, cellName)
+				singleEmployer, err := controllers.FindOrCreatePublication(c, r, cellName, "")
 				if err != nil {
 					log.Errorf(c, "past employers error: %v", cellName, err)
 				}
