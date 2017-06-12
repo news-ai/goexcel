@@ -24,6 +24,8 @@ var nonCustomHeaders = map[string]bool{
 	"instagram":     true,
 	"website":       true,
 	"blog":          true,
+	"location":      true,
+	"phonenumber":   true,
 }
 
 type Column struct {
@@ -87,6 +89,10 @@ func rowToContact(r *http.Request, c context.Context, columnName string, cellNam
 				contact.Website = cellName
 			case "blog":
 				contact.Blog = cellName
+			case "location":
+				contact.Location = cellName
+			case "phonenumber":
+				contact.PhoneNumber = cellName
 			}
 		} else {
 			var customField models.CustomContactField
