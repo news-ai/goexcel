@@ -68,17 +68,21 @@ func rowToContact(r *http.Request, c context.Context, columnName string, cellNam
 			case "notes":
 				contact.Notes = cellName
 			case "employers":
-				singleEmployer, err := controllers.UploadFindOrCreatePublication(c, r, cellName, "")
-				if err != nil {
-					log.Errorf(c, "employers error: %v", cellName, err)
+				if cellName != "" {
+					singleEmployer, err := controllers.UploadFindOrCreatePublication(c, r, cellName, "")
+					if err != nil {
+						log.Errorf(c, "employers error: %v", cellName, err)
+					}
+					*employers = append(*employers, singleEmployer.Id)
 				}
-				*employers = append(*employers, singleEmployer.Id)
 			case "pastemployers":
-				singleEmployer, err := controllers.UploadFindOrCreatePublication(c, r, cellName, "")
-				if err != nil {
-					log.Errorf(c, "past employers error: %v", cellName, err)
+				if cellName != "" {
+					singleEmployer, err := controllers.UploadFindOrCreatePublication(c, r, cellName, "")
+					if err != nil {
+						log.Errorf(c, "past employers error: %v", cellName, err)
+					}
+					*pastEmployers = append(*pastEmployers, singleEmployer.Id)
 				}
-				*pastEmployers = append(*pastEmployers, singleEmployer.Id)
 			case "linkedin":
 				contact.LinkedIn = cellName
 			case "twitter":
